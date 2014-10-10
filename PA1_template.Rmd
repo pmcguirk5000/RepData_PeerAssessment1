@@ -8,18 +8,80 @@ output:
 
 ## Loading and preprocessing the data
 
+```{r echo=TRUE}
+
+activity <- read.csv("~/activity.csv", stringsAsFactors=FALSE,colClasses = c("numeric", "Date", "numeric"))
+omitActivity<- na.omit(activity) 
+```
 
 
 ## What is mean total number of steps taken per day?
 
+```{r echo=TRUE}
+
+
+stepsByDate<-tapply(omitActivity$steps, omitActivity$date, sum)
+hist(stepsByDate,10, main = "Number of steps per day", xlab = "Steps")
+
+mean(stepsByDate)
+median(stepsByDate)
+```
 
 
 ## What is the average daily activity pattern?
 
+```{r echo=TRUE}
+
+stepsByInterval<-tapply(omitActivity$steps, omitActivity$interval, mean)
+plot(x = names(stepsByInterval), y = stepsByInterval, type = "l", xlab = "5 Minute Intervals", 
+     main = "Average Daily Activity Pattern", ylab = "Average nNumber of Steps")
+stepsByInterval[stepsByInterval==max(stepsByInterval)]
+
+
+```
 
 
 ## Imputing missing values
 
+```{r echo=TRUE}
+activityNew <- activity
+activityNew[which(is.na(activityNew$steps)),1]<-stepsByInterval[as.character(activityNew[which(is.na(activityNew$steps)),3])]
 
+stepsByDateNew<-tapply(activityNew$steps, activityNew$date, sum)
+hist(stepsByDateNew,10, main = "Total steps taken per day", xlab = "Steps"
+     , ylim =c(0, 25))
+mean(stepsByDateNew)
+median(stepsByDateNew)
+```
 
 ## Are there differences in activity patterns between weekdays and weekends?
+
+```{r echo=TRUE}
+activityNew$weekday<-weekdays(activityNew$date)
+activityNew$days<- as.factor(c("weekday","weekend"))
+activityNew[activityNew$weekday == "Sunday" | activityNew$weekday == "Saturday" ,5]<- factor("weekend")
+activityNew[!activityNew$weekday == "Sunday" | activityNew$weekday == "Saturday" ,5]<- factor("weekday")
+
+activityNewWeekends <- subset(activityNew, days == "weekend") 
+activityNewWeekdays <- subset(activityNew, days == "weekday") 
+stepsByDateWeekend<-tapply(activityNewWeekends$steps, activityNewWeekends$interval, mean)
+stepsByDateWeekday<-tapply(activityNewWeekdays$steps, activityNewWeekdays$interval, mean)
+
+
+plot(x = names(stepsByDateWeekend),y = stepsByDateWeekend,  
+     type = "l", xlab = "5 Minute Intervals", 
+     main = "Daily Steps for Weekends", 
+     ylab = "Mean number of steps", 
+     ylim =c(0, 250))
+
+plot(x = names(stepsByDateWeekday),y = stepsByDateWeekday,  
+     type = "l", xlab = "5 Minute Intervals", 
+     main = "Daily Steps for Weekdays", 
+     ylab = "Mean number of steps", 
+     ylim =c(0, 250))
+
+
+
+
+```
+
